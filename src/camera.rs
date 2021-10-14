@@ -29,8 +29,8 @@ pub fn pan_orbit_camera(
     mut query: Query<(&mut PanOrbitCamera, &mut Transform, &PerspectiveProjection)>,
 ) {
     // change input mapping for orbit and panning here
-    let orbit_button = MouseButton::Left;
-    //let pan_button = MouseButton::Right;
+    let orbit_button = MouseButton::Right;
+    let pan_button = MouseButton::Left;
     let scroll_sensitivity = 2.0; // lower = more sensitive
 
     let mut pan = Vec2::ZERO;
@@ -43,11 +43,11 @@ pub fn pan_orbit_camera(
             rotation_move += ev.delta;
         }
         // adds panning, needs to be implemented better
-    // } else if input_mouse.pressed(pan_button) {
-    //     // Pan only if we're not rotating at the moment
-    //     for ev in ev_motion.iter() {
-    //         pan += ev.delta;
-    //     }
+        } else if input_mouse.pressed(pan_button) {
+        // Pan only if we're not rotating at the moment
+        for ev in ev_motion.iter() {
+            pan += ev.delta;
+        }
     }
     for ev in ev_scroll.iter() {
         scroll += ev.y / scroll_sensitivity;
