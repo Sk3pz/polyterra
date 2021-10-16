@@ -2,7 +2,7 @@
 name = "polyterra"
 version = "0.1.0"
 edition = "2021"
-authors = ["Sk3pz <skepz.dev@gmail.com>"]
+authors = ["Skepz <skepz.dev@gmail.com>"]
 description = "A minimalistic low-poly game written in rust using bevy"
 
 [dependencies]

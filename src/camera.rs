@@ -1,6 +1,7 @@
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
 use bevy::render::camera::PerspectiveProjection;
+use crate::mouse::{lock_cursor, unlock_cursor};
 
 /// Tags an entity as capable of panning and orbiting.
 pub struct PanOrbitCamera {
@@ -22,7 +23,7 @@ impl Default for PanOrbitCamera {
 
 /// Pan the camera with middle mouse click, zoom with scroll wheel, orbit with right mouse click.
 pub fn pan_orbit_camera(
-    windows: Res<Windows>,
+    mut windows: ResMut<Windows>,
     mut ev_motion: EventReader<MouseMotion>,
     mut ev_scroll: EventReader<MouseWheel>,
     input_mouse: Res<Input<MouseButton>>,
@@ -39,15 +40,19 @@ pub fn pan_orbit_camera(
     let mut orbit_button_changed = false;
 
     if input_mouse.pressed(orbit_button) {
+        lock_cursor(&mut windows);
         for ev in ev_motion.iter() {
             rotation_move += ev.delta;
         }
         // adds panning, needs to be implemented better
-        } else if input_mouse.pressed(pan_button) {
+    } else if input_mouse.pressed(pan_button) {
+        lock_cursor(&mut windows);
         // Pan only if we're not rotating at the moment
         for ev in ev_motion.iter() {
             pan += ev.delta;
         }
+    } else {
+        unlock_cursor(&mut windows);
     }
     for ev in ev_scroll.iter() {
         scroll += ev.y / scroll_sensitivity;
@@ -77,6 +82,7 @@ pub fn pan_orbit_camera(
             let pitch = Quat::from_rotation_x(-delta_y);
             transform.rotation = yaw * transform.rotation; // rotate around global y axis
             transform.rotation = transform.rotation * pitch; // rotate around local x axis
+            (transform.rotation as Quat).to_axis_angle(); // todo(Skepz) Was here!
         } else if pan.length_squared() > 0.0 {
             any = true;
             // make panning distance independent of resolution and FOV,
@@ -86,6 +92,7 @@ pub fn pan_orbit_camera(
             let right = transform.rotation * Vec3::X * -pan.x;
             let up = transform.rotation * Vec3::Y * pan.y;
             // make panning proportional to distance away from focus point
+            // todo(Skepz): Bound panning to a specific amount so that it isn't infinite?
             let translation = (right + up) * pan_orbit.radius;
             pan_orbit.focus += translation;
         } else if scroll.abs() > 0.0 {
@@ -111,7 +118,7 @@ pub fn pan_orbit_camera(
     }
 }
 
-fn get_primary_window_size(windows: &Res<Windows>) -> Vec2 {
+fn get_primary_window_size(mut windows: &ResMut<Windows>) -> Vec2 {
     let window = windows.get_primary().unwrap();
     let window = Vec2::new(window.width() as f32, window.height() as f32);
     window

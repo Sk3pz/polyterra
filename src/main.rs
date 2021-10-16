@@ -145,7 +145,7 @@ fn main() {
         .add_startup_system(setup_logger.system())
         .add_startup_system(setup.system())
         .add_startup_system(spawn_camera.system())
-        .add_system(cursor_grab_system.system())
+        //.add_system(cursor_grab_system.system())
         .add_system(pan_orbit_camera.system())
         .run();
 }
