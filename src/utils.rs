@@ -15,28 +15,3 @@ pub fn systime() -> usize {
 pub fn color_flush() {
     println!("{}", Style::default());
 }
-
-pub fn setup_logger() {
-    // define the colors for the console logging
-    let colors = ColoredLevelConfig::new()
-        .trace(fern::colors::Color::White)
-        .debug(fern::colors::Color::BrightBlack)
-        .info(fern::colors::Color::Cyan)
-        .warn(fern::colors::Color::BrightYellow)
-        .error(fern::colors::Color::BrightRed);
-
-    // configure logging
-    fern::Dispatch::new()
-        .format(move |out, message, record| {
-            out.finish(format_args!(
-                "{}[{}][{}] {}", // format: '[YYYY-MM-DD][HH:MM:SS][target][level] msg'
-                chrono::Local::now().format("[%Y-%m-%d][%H:%M:%S]"),
-                record.target(),
-                colors.color(record.level()),
-                message
-            ))
-        })
-        .level(FILTERED_LOG_LEVEL) // Set at the top of this file, filters all levels below it
-        .chain(std::io::stdout()) // Add stdout as an output
-        .apply().expect("Failed to create logger"); // create the logger
-}

@@ -28,6 +28,19 @@ fn setup(
 
     // Spawn a light
     let mut sun = Light {
+        color: Color::rgba(0.2, 0.2, 0.2, 1.0),
+        depth: 0.1..50.0,
+        fov: f32::to_radians(60.0),
+        intensity: 1000.0,
+        range: 20.0,
+    };
+    commands.spawn_bundle(LightBundle {
+        transform: Transform::from_xyz(0.0, 10.0, 0.0),
+        light: sun,
+        ..Default::default()
+    });
+
+    let mut altar_light = Light {
         color: Color::rgba(0.2, 0.8, 0.8, 1.0),
         depth: 0.1..50.0,
         fov: f32::to_radians(60.0),
@@ -35,8 +48,8 @@ fn setup(
         range: 20.0,
     };
     commands.spawn_bundle(LightBundle {
-        transform: Transform::from_xyz(0.0, 2.0, 0.0),
-        light: sun,
+        transform: Transform::from_xyz(0.0, 0.0, 0.0),
+        light: altar_light,
         ..Default::default()
     });
 
@@ -119,7 +132,7 @@ fn exit_system(mut exit: EventWriter<AppExit>) {
     exit.send(AppExit);
 }
 
-pub fn set_window_icon(windows: Res<WinitWindows>) {
+fn set_window_icon(windows: Res<WinitWindows>) {
     let primary = windows.get_window(WindowId::primary()).unwrap();
 
     // here we use the `image` crate to load our icon data from a png file
@@ -142,7 +155,6 @@ fn main() {
     App::build()
         .insert_resource(Msaa { samples: 4 })
         .add_plugins(DefaultPlugins)
-        .add_startup_system(setup_logger.system())
         .add_startup_system(setup.system())
         .add_startup_system(spawn_camera.system())
         //.add_system(cursor_grab_system.system())

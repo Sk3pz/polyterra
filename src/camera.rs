@@ -1,3 +1,4 @@
+use std::f32::consts::PI;
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
 use bevy::render::camera::PerspectiveProjection;
@@ -27,17 +28,25 @@ pub fn pan_orbit_camera(
     mut ev_motion: EventReader<MouseMotion>,
     mut ev_scroll: EventReader<MouseWheel>,
     input_mouse: Res<Input<MouseButton>>,
+    input_keyboard: Res<Input<KeyCode>>,
     mut query: Query<(&mut PanOrbitCamera, &mut Transform, &PerspectiveProjection)>,
 ) {
     // change input mapping for orbit and panning here
     let orbit_button = MouseButton::Right;
     let pan_button = MouseButton::Left;
     let scroll_sensitivity = 2.0; // lower = more sensitive
+    let reset_button = KeyCode::R;
 
     let mut pan = Vec2::ZERO;
     let mut rotation_move = Vec2::ZERO;
     let mut scroll = 0.0;
     let mut orbit_button_changed = false;
+    let mut reset = false;
+
+    if input_keyboard.pressed(reset_button) {
+        reset = true;
+        warn!("Reset key was pressed but this feature is not yet implemented!");
+    }
 
     if input_mouse.pressed(orbit_button) {
         lock_cursor(&mut windows);
@@ -62,6 +71,7 @@ pub fn pan_orbit_camera(
     }
 
     for (mut pan_orbit, mut transform, projection) in query.iter_mut() {
+
         if orbit_button_changed {
             // only check for upside down when orbiting started or ended this frame
             // if the camera is "upside" down, panning horizontally would be inverted, so invert the input to make it correct
@@ -74,15 +84,16 @@ pub fn pan_orbit_camera(
             any = true;
             let window = get_primary_window_size(&windows);
             let delta_x = {
-                let delta = rotation_move.x / window.x * std::f32::consts::PI * 2.0;
+                let delta = rotation_move.x / window.x * PI * 2.0;
                 if pan_orbit.upside_down { -delta } else { delta }
             };
-            let delta_y = rotation_move.y / window.y * std::f32::consts::PI;
+            let delta_y = rotation_move.y / window.y * PI;
+
             let yaw = Quat::from_rotation_y(-delta_x);
             let pitch = Quat::from_rotation_x(-delta_y);
+
             transform.rotation = yaw * transform.rotation; // rotate around global y axis
             transform.rotation = transform.rotation * pitch; // rotate around local x axis
-            (transform.rotation as Quat).to_axis_angle(); // todo(Skepz) Was here!
         } else if pan.length_squared() > 0.0 {
             any = true;
             // make panning distance independent of resolution and FOV,
